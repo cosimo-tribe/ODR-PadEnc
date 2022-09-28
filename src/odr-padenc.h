@@ -57,6 +57,7 @@ struct PadEncoderOptions {
     int label_interval = 12;    // uniform PAD encoder only
     int label_insertion = 1200; // uniform PAD encoder only
     int xpad_interval = 1;      // uniform PAD encoder only
+    int label_repetitions = 1;
     size_t max_slide_size = SLSEncoder::MAXSLIDESIZE_SIMPLE;
     bool raw_slides = false;
     DL_PARAMS dl_params;

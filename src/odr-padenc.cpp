@@ -89,6 +89,9 @@ static void usage(const char* name) {
                     "                             Default: %d\n"
                     " -X, --xpad-interval=COUNT Output X-PAD every COUNT frames/AUs (otherwise: only F-PAD)\n"
                     "                             Default: %d\n"
+                    " --label-repetitions=COUNT Repeat the label COUNT times each time it's inserted, to work around certain receivers that expects the label to be\n"
+                    "                             repeated multiple times.\n"
+                    "                             Default: %d\n"
                     "\n"
                     "The PAD length is configured on the audio encoder and communicated over the socket to ODR-PadEnc\n"
                     "Allowed PAD lengths are: %s\n",
@@ -97,6 +100,7 @@ static void usage(const char* name) {
                     options_default.label_interval,
                     options_default.label_insertion,
                     options_default.xpad_interval,
+                    options_default.label_repetitions,
                     PADPacketizer::ALLOWED_PADLEN.c_str()
            );
 }
@@ -150,6 +154,7 @@ int main(int argc, char *argv[]) {
         {"verbose",         no_argument,        0, 'v'},
         {"dump-current-slide",   required_argument, 0, 1},
         {"dump-completed-slide", required_argument, 0, 2},
+        {"label-repetitions", required_argument, 0, 3},
         {0,0,0,0},
     };
 
@@ -206,6 +211,9 @@ int main(int argc, char *argv[]) {
                 break;
             case 2: // dump-completed-slide
                 options.completed_slide_dump_name = optarg;
+                break;
+            case 3: // label-repetitions
+                options.label_repetitions = atoi(optarg);
                 break;
             case '?':
             case 'h':
@@ -467,7 +475,12 @@ int PadEncoder::EncodeLabel() {
             fprintf(stderr, "ODR-PadEnc Previous label ended transmission, sending the new one.\n");
             label_warn_shown = false;
         }
-        dls_encoder.encodeLabel(options.dls_files[curr_dls_file], options.item_state_file, options.dl_params);
+        if (verbose >= 2) {
+            fprintf(stderr, "ODR-PadEnc Repeating the DLS %d time(s).\n", options.label_repetitions);
+        }
+        for (int i = 0; i < options.label_repetitions; i++) {
+            dls_encoder.encodeLabel(options.dls_files[curr_dls_file], options.item_state_file, options.dl_params);
+        }
         return 1;
     }
 }
